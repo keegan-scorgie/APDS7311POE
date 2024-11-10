@@ -6,7 +6,7 @@ jobs:
     docker:
       - image: circleci/python:3.8  # Use the appropriate Docker image for your project
     steps:
-      - checkout  # Checkout the codee
+      - checkout  # Checkout the code
       - run:
           name: Install dependencies
           command: |
