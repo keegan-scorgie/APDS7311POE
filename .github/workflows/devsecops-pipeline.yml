@@ -25,18 +25,14 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
-        working-directory: ./BACKEND 
+        run: |
+          cd ./BACKEND
+          npm install
 
       - name: Install MongoDB package in BACKEND
         run: |
           cd ./BACKEND
           npm install mongodb
-
-      - name: List installed packages
-        run: |
-          cd ./BACKEND
-          npm list --depth=0
 
       - name: Install git-secrets
         run: |
@@ -56,6 +52,17 @@ jobs:
             echo "Hard-coded password detected in configuration files."
             exit 1
           fi
+
+      - name: Clear node_modules and reinstall
+        run: |
+          rm -rf ./BACKEND/node_modules
+          cd ./BACKEND
+          npm install
+
+      - name: List installed modules
+        run: |
+          cd ./BACKEND
+          npm ls mongodb
 
       - name: Create Admin Account if Not Exists
         run: |
@@ -98,7 +105,7 @@ jobs:
             }
 
             createAdmin();
-          "
+          " --cwd ./BACKEND
 
       - name: Deploy Application
         if: success()
