@@ -5,6 +5,7 @@ import fruits from "./routes/fruit.mjs";
 import express from "express";
 import cors from "cors";
 import userRoutes from "./routes/user.mjs"; //importing the user routes here
+import employeeRoutes from "./routes/employee.mjs";
 
 /*
 updated this file as per part 2 feedback to ensure all traffic is served
@@ -41,6 +42,7 @@ app.use((req, res, next) => {
 
 // user routes here
 app.use("/api/users", userRoutes); 
+app.use("/api/employees", employeeRoutes); 
 
 
 const httpsServer = https.createServer(options, app);
