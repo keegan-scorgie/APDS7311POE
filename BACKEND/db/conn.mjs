@@ -5,11 +5,11 @@ dotenv.config();
 const connectionString = process.env.ATLAS_URI || "";
 
 console.log(`MongoDB connection string: ${connectionString}`); 
-const certificatePath = './keys/certificate.pem';
+
 
 const client = new MongoClient(connectionString, {
     tls: true,
-    tlsCAFile: certificatePath,
+    tlsCAFile: './keys/certificate.pem',
     tlsAllowInvalidCertificates: true,
 
 });
