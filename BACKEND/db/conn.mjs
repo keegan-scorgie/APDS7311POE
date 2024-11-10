@@ -4,9 +4,13 @@ dotenv.config();
 
 const connectionString = process.env.ATLAS_URI || "";
 
-console.log(`MongoDB connection string: ${connectionString}`); // Debugging line
+console.log(`MongoDB connection string: ${connectionString}`); 
 
-const client = new MongoClient(connectionString);
+const client = new MongoClient(connectionString, {
+    tls: true,  
+    tlsAllowInvalidCertificates: true,  
+    tlsAllowInvalidHostnames: true      
+});
 
 let conn;
 try {
