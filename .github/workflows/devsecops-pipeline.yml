@@ -49,7 +49,7 @@ jobs:
             exit 1
           fi
 
-            - name: Install The MongoDB package
+            - name: Install The MongoDB package ffor
         run: npm install mongodb
         working-directory: ./BACKEND
 
