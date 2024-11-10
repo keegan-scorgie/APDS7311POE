@@ -1,23 +1,39 @@
 version: 2.1
 
-jobs:
-  sonarqube:
+executors:
+  docker-executor:
     docker:
-      - image: sonarsource/sonar-scanner-cli:latest
+      - image: circleci/python:3.8
+    working_directory: ~/repo
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.8
     steps:
-      - checkout  # Check out the code
+      - checkout
       - run:
-          name: Run SonarCloud Analysis
+          name: Install SonarScanner dependencies
           command: |
-            docker run \
-              --rm \
-              -e SONAR_HOST_URL="https://sonarcloud.io" \
-              -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=keegan-scorgie_APDS7311POE" \
-              -e SONAR_LOGIN=$SONAR_TOKEN \
-              -v "$(pwd)":/usr/src \
-              sonarsource/sonar-scanner-cli
+            curl -sS https://get.sonarsource.com/sonarscanner | bash
+      - run:
+          name: Set up SonarScanner environment variables
+          command: |
+            export SONAR_HOST_URL="https://sonarcloud.io"
+            export SONAR_LOGIN="0fb0e746eb902bbedb862786274bc3dbbfdd61af"
+            export SONAR_PROJECT_KEY="keegan-scorgie_APDS7311POE"
+            export SONAR_ORG="keegan-scorgie"
+      - run:
+          name: Run SonarScanner analysis
+          command: |
+            sonar-scanner \
+              -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+              -Dsonar.organization=$SONAR_ORG \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_LOGIN
+
 workflows:
   version: 2
-  sonarcloud-analysis:
+  build:
     jobs:
-      - sonarqube
+      - build
