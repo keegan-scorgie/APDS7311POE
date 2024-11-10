@@ -10,6 +10,7 @@ const certificatePath = './keys/certificate.pem';
 const client = new MongoClient(connectionString, {
     tls: true,
     tlsCAFile: certificatePath,
+    tlsAllowInvalidCertificates: true,
 
 });
 
