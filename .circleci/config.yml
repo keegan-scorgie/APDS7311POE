@@ -3,9 +3,14 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/python:3.8  # Using a Python Docker image
+      - image: circleci/python:3.9  # Use a Python 3.9 Docker image compatible with your dependencies
+    environment:
+      SONAR_TOKEN: $SONAR_TOKEN  # Set environment variable from CircleCI secrets
+      SONAR_PROJECT_KEY: <your-sonarqube-project-key>  # Replace with your SonarQube project key
+      SONAR_ORGANIZATION: <your-sonarqube-organization>  # Replace with your SonarQube organization
     steps:
-      - checkout  # Check out the code from the repo
+      - checkout  # Checkout the code from the repo
+
       - run:
           name: Install dependencies
           command: |
@@ -23,10 +28,10 @@ jobs:
           name: Run SonarQube Scan
           command: |
             sonar-scanner \
-              -Dsonar.projectKey=<your-sonarqube-project-key> \
-              -Dsonar.organization=<your-sonarqube-organization> \
+              -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+              -Dsonar.organization=$SONAR_ORGANIZATION \
               -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.login=$SONAR_TOKEN  # Token from CircleCI secrets
+              -Dsonar.login=$SONAR_TOKEN  # Use the SONAR_TOKEN environment variable for authentication
 
 workflows:
   version: 2
