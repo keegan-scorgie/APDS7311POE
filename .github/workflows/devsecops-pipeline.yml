@@ -28,15 +28,15 @@ jobs:
         run: npm install
         working-directory: ./BACKEND 
 
-        - name: List installed packages
-    run: |
-    cd ./BACKEND
-    npm list --depth=0
+      - name: Install MongoDB package in BACKEND
+        run: |
+          cd ./BACKEND
+          npm install mongodb
 
-
-      - name: Install MongoDB package
-        run: npm install mongodb
-        working-directory: ./BACKEND
+      - name: List installed packages
+        run: |
+          cd ./BACKEND
+          npm list --depth=0
 
       - name: Install git-secrets
         run: |
@@ -73,7 +73,7 @@ jobs:
                 console.log('Connecting to MongoDB...');
                 await client.connect();
                 const db = client.db();
-                const collection = db.collection('employees'); // Replace 'employees' with your collection name if needed
+                const collection = db.collection('employees');
                 const existingAdmin = await collection.findOne({ username: process.env.ADMIN_USERNAME });
 
                 if (!existingAdmin) {
