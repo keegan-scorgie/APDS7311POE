@@ -28,6 +28,12 @@ jobs:
         run: npm install
         working-directory: ./BACKEND 
 
+        - name: List installed packages
+    run: |
+    cd ./BACKEND
+    npm list --depth=0
+
+
       - name: Install MongoDB package
         run: npm install mongodb
         working-directory: ./BACKEND
