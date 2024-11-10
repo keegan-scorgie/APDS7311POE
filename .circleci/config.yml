@@ -1,31 +1,23 @@
 version: 2.1
 
-executors:
-  python-executor:
-    docker:
-      - image: circleci/python:3.9
-    working_directory: ~/repo
-
 jobs:
   sonarqube:
-    executor: python-executor
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest
     steps:
-      - checkout  # Checks out the source code
-      - run:
-          name: Install SonarScanner
-          command: |
-            curl -sSLo sonar-scanner-cli.tar.gz https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
-            unzip sonar-scanner-cli.tar.gz
-            mv sonar-scanner-*/bin/* /usr/local/bin/
+      - checkout  # Check out the code
       - run:
           name: Run SonarCloud Analysis
           command: |
-            sonar-scanner \
-              -Dsonar.projectKey=keegan-scorgie_APDS7311POE \
-              -Dsonar.organization=keegan-scorgie \
-              -Dsonar.login=$SONAR_TOKEN
+            docker run \
+              --rm \
+              -e SONAR_HOST_URL="https://sonarcloud.io" \
+              -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=keegan-scorgie_APDS7311POE" \
+              -e SONAR_LOGIN=$SONAR_TOKEN \
+              -v "$(pwd)":/usr/src \
+              sonarsource/sonar-scanner-cli
 workflows:
   version: 2
-  build_and_test:
+  sonarcloud-analysis:
     jobs:
       - sonarqube
