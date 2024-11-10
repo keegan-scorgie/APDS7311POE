@@ -1,38 +1,31 @@
 version: 2.1
 
-jobs:
-  build:
+executors:
+  python-executor:
     docker:
-      - image: circleci/python:3.8  # Using Python 3.8 docker image
-    steps:
-      - checkout  # Checkout the code from the repo
-      
-      - run:
-          name: Install dependencies
-          command: |
-            python -m ensurepip --upgrade  # Ensure pip is installed
-            python -m pip install --upgrade pip  # Upgrade pip to the latest version
-            # Install dependencies, excluding pywin32 which is not required in Linux
-            sed -i '/pywin32/d' requirements.txt  # Remove pywin32 from the requirements.txt for Linux environments
-            pip install -r requirements.txt  # Install the remaining dependencies
+      - image: circleci/python:3.9
+    working_directory: ~/repo
 
+jobs:
+  sonarqube:
+    executor: python-executor
+    steps:
+      - checkout  # Checks out the source code
       - run:
           name: Install SonarScanner
           command: |
-            curl -sS https://get.sonarsource.com/sonar-scanner-cli-linux.tar.gz | tar xz -C /opt
-            export PATH=$PATH:/opt/sonar-scanner-*/bin  # Add SonarScanner to PATH
-
+            curl -sSLo sonar-scanner-cli.tar.gz https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+            unzip sonar-scanner-cli.tar.gz
+            mv sonar-scanner-*/bin/* /usr/local/bin/
       - run:
-          name: Run SonarQube Scan
+          name: Run SonarCloud Analysis
           command: |
             sonar-scanner \
-              -Dsonar.projectKey=<your-sonarqube-project-key> \
-              -Dsonar.organization=<your-sonarqube-organization> \
-              -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.login=$SONAR_TOKEN  # Token from CircleCI secrets
-
+              -Dsonar.projectKey=keegan-scorgie_APDS7311POE \
+              -Dsonar.organization=keegan-scorgie \
+              -Dsonar.login=$SONAR_TOKEN
 workflows:
   version: 2
-  build_and_scan:
+  build_and_test:
     jobs:
-      - build
+      - sonarqube
