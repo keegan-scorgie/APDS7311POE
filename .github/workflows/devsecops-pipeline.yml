@@ -49,6 +49,10 @@ jobs:
             exit 1
           fi
 
+            - name: Install MongoDB package
+        run: npm install mongodb
+        working-directory: ./BACKEND
+
       - name: Create Admin Account if Not Exists
         run: |
           echo "Checking if admin account exists..."
