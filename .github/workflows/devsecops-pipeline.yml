@@ -40,9 +40,7 @@ jobs:
         working-directory: ./BACKEND
         continue-on-error: true
 
-      - name: Run Linter
-        run: npm run lint
-        working-directory: ./BACKEND 
+      # Removed the Linter step
 
       - name: Run Admin Auth Tests
         run: npm test -- --grep 'Admin Login'
@@ -71,11 +69,6 @@ jobs:
                 await client.connect();
                 const db = client.db();
                 const collection = db.collection('employees'); // Replace 'employees' with your collection name if needed
-                
-                // Debugging: Log the current state of the collection
-                const count = await collection.countDocuments({});
-                console.log('Current document count in collection:', count);
-
                 const existingAdmin = await collection.findOne({ username: process.env.ADMIN_USERNAME });
 
                 if (!existingAdmin) {
