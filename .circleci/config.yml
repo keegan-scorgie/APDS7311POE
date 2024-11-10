@@ -1,0 +1,34 @@
+ 
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.8  # Use the appropriate Docker image for your project
+    steps:
+      - checkout  # Checkout the code
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r requirements.txt  # Adjust based on your project language
+
+      - run:
+          name: Install SonarScanner
+          command: |
+            curl -sS https://get.sonarsource.com/sonar-scanner-cli-linux.tar.gz | tar xz -C /opt
+            export PATH=$PATH:/opt/sonar-scanner-*/bin
+
+      - run:
+          name: Run SonarQube Scan
+          command: |
+            sonar-scanner \
+              -Dsonar.projectKey=<your-sonarqube-project-key> \
+              -Dsonar.organization=<your-sonarqube-organization> \
+              -Dsonar.host.url=https://sonarcloud.io \
+              -Dsonar.login=$SONAR_TOKEN  # Token from CircleCI secrets
+
+workflows:
+  version: 2
+  build_and_scan:
+    jobs:
+      - build
