@@ -14,7 +14,7 @@ jobs:
       ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
       ATLAS_URI: ${{ secrets.ATLAS_URI }}
-      TLS_CA_CERT: ${{ secrets.TLS_CA_CERT }}  # Reference the certificate secret
+      TLS_CA_CERT: ${{ secrets.TLS_CA_CERT }}
 
     steps:
       - name: Check out code
@@ -39,8 +39,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git-secrets
-          git secrets --register-aws
-          git secrets --scan
+          git secrets --register-aws  # Optional: if you're specifically looking for AWS secrets
+          git secrets --scan  # Run secret scan
 
       - name: Run Security Check
         run: npm audit --audit-level=high
@@ -67,7 +67,13 @@ jobs:
 
       - name: Create Certificate File for MongoDB TLS
         run: |
+          mkdir -p ./BACKEND/keys  # Ensure the 'keys' directory exists
           echo "${{ secrets.TLS_CA_CERT }}" > ./BACKEND/keys/certificate.pem
+        working-directory: ./BACKEND
+
+      - name: Verify Certificate File
+        run: |
+          ls -l ./BACKEND/keys/certificate.pem
         working-directory: ./BACKEND
 
       - name: Create Admin Account if Not Exists
@@ -77,16 +83,12 @@ jobs:
           echo "Admin Username: ${{ secrets.ADMIN_USERNAME }}"
           cd ./BACKEND
           node -e "
-            import { MongoClient } from 'mongodb';
-            import dotenv from 'dotenv';
-            dotenv.config();
-
-            const connectionString = process.env.ATLAS_URI || '';
-            const certificatePath = './keys/certificate.pem';  // Path to certificate file
-
-            const client = new MongoClient(connectionString, {
+            const { MongoClient } = require('mongodb');
+            const bcrypt = require('bcryptjs');
+            const uri = process.env.ATLAS_URI;
+            const client = new MongoClient(uri, {
               tls: true,
-              tlsCAFile: certificatePath,
+              tlsCAFile: './keys/certificate.pem',  // Path to the certificate in the BACKEND folder
             });
 
             async function createAdmin() {
@@ -99,13 +101,12 @@ jobs:
 
                 if (!existingAdmin) {
                   console.log('Admin account does not exist. Creating new one...');
-                  const bcrypt = require('bcryptjs');
                   const salt = await bcrypt.genSalt(10);
                   const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, salt);
                   await collection.insertOne({
                     username: process.env.ADMIN_USERNAME,
                     password: hashedPassword,
-                    role: 'admin',
+                    role: 'admin'
                   });
                   console.log('Admin account created.');
                 } else {
