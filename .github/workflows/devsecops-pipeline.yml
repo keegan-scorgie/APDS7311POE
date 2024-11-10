@@ -28,6 +28,10 @@ jobs:
         run: npm install
         working-directory: ./BACKEND 
 
+      - name: Install MongoDB package
+        run: npm install mongodb
+        working-directory: ./BACKEND
+
       - name: Install git-secrets
         run: |
           sudo apt-get update
@@ -40,18 +44,12 @@ jobs:
         working-directory: ./BACKEND
         continue-on-error: true
 
-     
-
       - name: Check Configurations for Hardcoded Secrets
         run: |
           if grep -q "hard-coded-password" config/*; then
             echo "Hard-coded password detected in configuration files."
             exit 1
           fi
-
-            - name: Install The MongoDB package ffor
-        run: npm install mongodb
-        working-directory: ./BACKEND
 
       - name: Create Admin Account if Not Exists
         run: |
