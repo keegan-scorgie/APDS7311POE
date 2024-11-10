@@ -27,10 +27,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Secret Scanning
-        uses: awslabs/git-secrets@v1.2.1
-        with:
-          config-file: .gitsecretconfig
+      - name: Install git-secrets
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-secrets
+          git secrets --register-aws  # Optional: if you're specifically looking for AWS secrets
+          git secrets --scan  # Run secret scan
 
       - name: Run Security Check
         run: npm audit --audit-level=high
