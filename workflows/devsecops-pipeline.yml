@@ -1,1 +1,65 @@
-devsecops-pipeline.yml
+name: DevSecOps Admin Auth Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  admin-auth-pipeline:
+    runs-on: ubuntu-latest
+
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+      ATLAS_URI: ${{ secrets.ATLAS_URI }}
+
+    steps:
+     
+      - name: Check out code
+        uses: actions/checkout@v2
+
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20' 
+
+   
+      - name: Install dependencies
+        run: npm install
+
+
+      - name: Run Secret Scanning
+        uses: awslabs/git-secrets@v1.3.0
+        with:
+          config-file: .gitsecretconfig 
+
+
+      - name: Run Security Check
+        run: npm audit --audit-level=high
+        continue-on-error: true 
+
+
+      - name: Run Linter
+        run: npm run lint
+
+
+      - name: Run Admin Auth Tests
+        run: npm test -- --grep 'Admin Login' 
+
+
+      - name: Check Configurations for Hardcoded Secrets
+        run: |
+          if grep -q "hard-coded-password" config/*; then
+            echo "Hard-coded password detected in configuration files."
+            exit 1
+          fi
+
+
+      - name: Deploy Application
+        if: success()
+        run: |
+          echo "Deploying application..."
+          # Add deployment commands here if you have a deployment target configured
