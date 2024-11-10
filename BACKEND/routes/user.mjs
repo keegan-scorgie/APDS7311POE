@@ -4,6 +4,8 @@ import db from "../db/conn.mjs";
 import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 import dotenv from "dotenv";
+import { authenticateJWT } from "../middleware/authenticateJWT.mjs";
+
 
 /*as per part 2 feedback ive implemented numerous security measures
 including express-validator, rate limiting, a more indepth jwt authentication
@@ -77,7 +79,7 @@ router.post("/login", ensureUsersCollection, async (req, res) => {
 
     const user = await usersCollection.findOne({ accountNumber });
     if (!user) {
-        return res.status(400).json({ message: "Invalid credentials." });
+        return res.status(400).json({ message: "Invalid account number." });  // Clear message for invalid account
     }
 
     // checking if the account is locked out
@@ -95,16 +97,16 @@ router.post("/login", ensureUsersCollection, async (req, res) => {
                 $set: { lockUntil: user.loginAttempts + 1 >= MAX_LOGIN_ATTEMPTS ? Date.now() + LOCK_TIME : null },
             }
         );
-        return res.status(400).json({ message: "Invalid credentials." });
+        return res.status(400).json({ message: "Incorrect password." });  // Clear message for wrong password
     }
 
-    //resets the login attempts once a successful login occurs
+    // Reset login attempts after successful login
     await usersCollection.updateOne(
         { accountNumber },
         { $set: { loginAttempts: 0, lockUntil: null } }
     );
 
-    // generating a jwt and now with data unique to each user
+    // Generate JWT token
     const token = jwt.sign(
         {
             id: user._id,
@@ -115,7 +117,47 @@ router.post("/login", ensureUsersCollection, async (req, res) => {
         { expiresIn: "1h" }
     );
 
-    res.status(200).json({ message: "Login successful! Welcome.", token });
+    res.status(200).json({ message: "Login successful!", token });
 });
+
+router.post(
+    "/payment", // This will be /api/users/payment
+    authenticateJWT, // Ensure JWT is verified before proceeding
+    [
+        body("amount").isNumeric().withMessage("Amount must be a number"),
+        body("transactionDate").isDate().withMessage("Invalid transaction date"),
+        body("name").isLength({ min: 1 }).withMessage("Name is required"),
+        body("bankReferenceNumber").isLength({ min: 1 }).withMessage("Bank reference number is required")
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { amount, transactionDate, name, bankReferenceNumber } = req.body;
+
+        try {
+            const newPayment = {
+                amount,
+                transactionDate,
+                name,
+                bankReferenceNumber,
+                userId: req.user.id  // Ensure the user is authorized through JWT
+            };
+
+            const paymentsCollection = db.collection('payments');
+            await paymentsCollection.insertOne(newPayment);
+
+            res.status(201).json({
+                message: 'Payment details submitted successfully!',
+                payment: newPayment
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Server error while processing payment' });
+        }
+    }
+);
 
 export default router;

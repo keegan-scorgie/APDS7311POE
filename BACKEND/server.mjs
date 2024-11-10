@@ -20,7 +20,7 @@ const options = {
 };
 
 app.use(cors({
-    origin: "https://localhost:3000", // ensuring all CORS is restricted to HTTPS
+    origin: ["https://localhost:3000", "http://localhost:3001"], // ensuring all CORS is restricted to HTTPS
 }));
 app.use(express.json());
 
@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 
 // user routes here
 app.use("/api/users", userRoutes); 
-app.use("/fruit", fruits);
+
 
 const httpsServer = https.createServer(options, app);
 httpsServer.listen(PORT, () => {
