@@ -9,22 +9,18 @@ executors:
 jobs:
   build:
     docker:
-      - image: circleci/python:3.8
+      - image: sonarsource/sonar-scanner-cli:latest
     steps:
       - checkout
       - run:
-          name: Install SonarScanner dependencies
-          command: |
-            curl -sS https://get.sonarsource.com/sonarscanner | bash
-      - run:
-          name: Set up SonarScanner environment variables
+          name: Set up SonarCloud environment variables
           command: |
             export SONAR_HOST_URL="https://sonarcloud.io"
             export SONAR_LOGIN="0fb0e746eb902bbedb862786274bc3dbbfdd61af"
             export SONAR_PROJECT_KEY="keegan-scorgie_APDS7311POE"
             export SONAR_ORG="keegan-scorgie"
       - run:
-          name: Run SonarScanner analysis
+          name: Run SonarCloud analysis
           command: |
             sonar-scanner \
               -Dsonar.projectKey=$SONAR_PROJECT_KEY \
