@@ -30,6 +30,11 @@ jobs:
           cd ./BACKEND
           npm install
 
+      - name: Install express-validator and rate-limit
+        run: |
+          cd ./BACKEND
+          npm install express-validator express-rate-limit
+
       - name: Install MongoDB package in BACKEND
         run: |
           cd ./BACKEND
@@ -39,8 +44,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git-secrets
-          git secrets --register-aws  # Optional: if you're specifically looking for AWS secrets
-          git secrets --scan  # Run secret scan
+          git secrets --register-aws
+          git secrets --scan
 
       - name: Run Security Check
         run: npm audit --audit-level=high
@@ -67,7 +72,7 @@ jobs:
 
       - name: Create Certificate File for MongoDB TLS
         run: |
-          mkdir -p ./BACKEND/keys  # Ensure the 'keys' directory exists
+          mkdir -p ./BACKEND/keys
           echo "${{ secrets.TLS_CA_CERT }}" > ./BACKEND/keys/certificate.pem
         working-directory: ./BACKEND
 
@@ -79,8 +84,6 @@ jobs:
       - name: Create Admin Account if Not Exists
         run: |
           echo "Checking if admin account exists..."
-          echo "MongoDB URI: ${{ secrets.ATLAS_URI }}"
-          echo "Admin Username: ${{ secrets.ADMIN_USERNAME }}"
           cd ./BACKEND
           node -e "
             const { MongoClient } = require('mongodb');
@@ -88,7 +91,7 @@ jobs:
             const uri = process.env.ATLAS_URI;
             const client = new MongoClient(uri, {
               tls: true,
-              tlsCAFile: './keys/certificate.pem',  // Path to the certificate in the BACKEND folder
+              tlsCAFile: './keys/certificate.pem',
             });
 
             async function createAdmin() {
@@ -122,6 +125,11 @@ jobs:
 
             createAdmin();
           "
+        
+      - name: Run Unit Tests
+        run: |
+          cd ./BACKEND
+          npm run test  # Make sure your test command is correctly configured in package.json
 
       - name: Deploy Application
         if: success()
