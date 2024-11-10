@@ -3,28 +3,24 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/python:3.8  # Using a Python Docker image
+      - image: circleci/python:3.8  # Using Python 3.8 docker image
     steps:
-      - checkout  # Check out the code from the repo
+      - checkout  # Checkout the code from the repo
+      
       - run:
           name: Install dependencies
           command: |
             python -m ensurepip --upgrade  # Ensure pip is installed
             python -m pip install --upgrade pip  # Upgrade pip to the latest version
-            pip install -r requirements.txt  # Install Python dependencies
+            # Install dependencies, excluding pywin32 which is not required in Linux
+            sed -i '/pywin32/d' requirements.txt  # Remove pywin32 from the requirements.txt for Linux environments
+            pip install -r requirements.txt  # Install the remaining dependencies
 
       - run:
           name: Install SonarScanner
           command: |
             curl -sS https://get.sonarsource.com/sonar-scanner-cli-linux.tar.gz | tar xz -C /opt
             export PATH=$PATH:/opt/sonar-scanner-*/bin  # Add SonarScanner to PATH
-
-      - run:
-          name: Install pywin32 conditionally
-          command: |
-            if [[ "$OSTYPE" == "msys" ]]; then
-                pip install pywin32==306
-            fi
 
       - run:
           name: Run SonarQube Scan
