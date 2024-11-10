@@ -9,8 +9,7 @@ console.log(`MongoDB connection string: ${connectionString}`);
 const client = new MongoClient(connectionString, {
     tls: true,
     tlsCAFile:'C:/Users/USER-PC/Desktop/School/APDS7311/POEPART2/BACKEND/keys/certificate.pem',    
-    tlsAllowInvalidCertificates: true, 
-    tlsAllowInvalidHostnames: true 
+
 });
 
 let conn;
