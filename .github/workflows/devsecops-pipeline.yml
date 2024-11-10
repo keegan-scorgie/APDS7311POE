@@ -37,6 +37,7 @@ jobs:
 
       - name: Run Security Check
         run: npm audit --audit-level=high
+        working-directory: ./BACKEND
         continue-on-error: true
 
       - name: Run Linter
