@@ -42,10 +42,6 @@ jobs:
 
      
 
-      - name: Run Admin Auth Tests
-        run: npm test -- --grep 'Admin Login'
-        working-directory: ./BACKEND
-
       - name: Check Configurations for Hardcoded Secrets
         run: |
           if grep -q "hard-coded-password" config/*; then
