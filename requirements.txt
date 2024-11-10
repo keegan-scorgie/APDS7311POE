@@ -112,7 +112,7 @@ sqlitedict==2.1.0
 tempora==5.7.0
 typing_extensions==4.12.2
 uritemplate==4.1.1
-urllib3==2.2.3
+urllib3==1.25.4
 websocket-client==1.8.0
 wrapt==1.16.0
 zc.lockfile==3.0.post1
