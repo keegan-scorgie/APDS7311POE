@@ -40,10 +40,11 @@ jobs:
         working-directory: ./BACKEND
         continue-on-error: true
 
-      # Removed the Linter step
+     
 
       - name: Run Admin Auth Tests
         run: npm test -- --grep 'Admin Login'
+        working-directory: ./BACKEND
 
       - name: Check Configurations for Hardcoded Secrets
         run: |
