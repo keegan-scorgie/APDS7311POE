@@ -42,6 +42,7 @@ jobs:
 
       - name: Run Linter
         run: npm run lint
+        working-directory: ./BACKEND 
 
       - name: Run Admin Auth Tests
         run: npm test -- --grep 'Admin Login'
