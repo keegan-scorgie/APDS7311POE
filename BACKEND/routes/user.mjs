@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import db from "../db/conn.mjs";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 import dotenv from "dotenv";
@@ -34,14 +35,17 @@ async function ensureUsersCollection(req, res, next) {
 }
 
 // user registration route  implemented express-validator
+// user registration route (modified to include role)
 router.post(
     "/register",
     ensureUsersCollection,
     [
+        body("role").optional().isIn(['user', 'employee']).withMessage("Role must be 'user' or 'employee'"), 
         body("fullName").notEmpty().withMessage("Full Name is required."),
         body("accountNumber").isLength({ min: 10, max: 10 }).withMessage("Account number must be exactly 10 digits."),
         body("idNumber").isLength({ min: 8, max: 12 }).withMessage("ID number must be 8-12 characters."),
         body("password").isStrongPassword().withMessage("Password must be strong (8+ characters, 1 uppercase, 1 lowercase, 1 number, 1 symbol)."),
+        
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -49,7 +53,7 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { fullName, idNumber, accountNumber, password } = req.body;
+        const { fullName, idNumber, accountNumber, password, role= 'user'} = req.body;
         const usersCollection = db.collection("users");
 
         const existingUser = await usersCollection.findOne({ accountNumber });
@@ -63,6 +67,7 @@ router.post(
             idNumber,
             accountNumber,
             password: hashedPassword,
+            role,  // Save role in user document
             loginAttempts: 0,
             lockUntil: null,
         };
@@ -71,6 +76,7 @@ router.post(
         res.status(201).json({ message: "User successfully registered." });
     }
 );
+
 
 // changed login route to implement rate limiting as per part 2 feedback (implementing more security to preventt more attacks)
 router.post("/login", ensureUsersCollection, async (req, res) => {
@@ -100,18 +106,19 @@ router.post("/login", ensureUsersCollection, async (req, res) => {
         return res.status(400).json({ message: "Incorrect password." });  // Clear message for wrong password
     }
 
-    // Reset login attempts after successful login
+    // reset the login attempts after successful login
     await usersCollection.updateOne(
         { accountNumber },
         { $set: { loginAttempts: 0, lockUntil: null } }
     );
 
-    // Generate JWT token
+
     const token = jwt.sign(
         {
             id: user._id,
             accountNumber: user.accountNumber,
             fullName: user.fullName,
+            role: user.role
         },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
@@ -121,13 +128,13 @@ router.post("/login", ensureUsersCollection, async (req, res) => {
 });
 
 router.post(
-    "/payment", // This will be /api/users/payment
-    authenticateJWT, // Ensure JWT is verified before proceeding
+    "/payment",
+    authenticateJWT,
     [
         body("amount").isNumeric().withMessage("Amount must be a number"),
         body("transactionDate").isDate().withMessage("Invalid transaction date"),
         body("name").isLength({ min: 1 }).withMessage("Name is required"),
-        body("bankReferenceNumber").isLength({ min: 1 }).withMessage("Bank reference number is required")
+        body("swiftCode").isLength({ min: 8, max: 11 }).withMessage("SWIFT code must be 8 or 11 characters")
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -135,15 +142,16 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { amount, transactionDate, name, bankReferenceNumber } = req.body;
+        const { amount, transactionDate, name, swiftCode } = req.body;
 
         try {
             const newPayment = {
                 amount,
                 transactionDate,
                 name,
-                bankReferenceNumber,
-                userId: req.user.id  // Ensure the user is authorized through JWT
+                swiftCode,
+                userId: new mongoose.Types.ObjectId(req.user.id),
+                paymentStatus: 'pending'  
             };
 
             const paymentsCollection = db.collection('payments');

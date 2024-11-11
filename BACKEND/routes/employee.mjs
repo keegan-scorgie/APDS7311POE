@@ -81,9 +81,14 @@ router.post(
         return res.status(401).json({ message: "Invalid username or password." });
       }
 
-      // generate JWT token after successful login
-      const token = jwt.sign({ employeeId: employee._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.json({ message: 'Login successful', token });
+      
+const token = jwt.sign(
+  { userId: employee._id, role: employee.role }, 
+  process.env.JWT_SECRET, 
+  { expiresIn: '1h' }
+);
+res.json({ message: 'Login successful', token });
+
     } catch (error) {
       console.error('Error during login:', error);
       res.status(500).json({ message: 'Server error' });

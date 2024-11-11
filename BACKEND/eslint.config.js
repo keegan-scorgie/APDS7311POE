@@ -8,7 +8,7 @@ module.exports = {
       sourceType: 'module',
     },
     rules: {
-      // Add custom rules here if needed
+    
     },
   };
   
