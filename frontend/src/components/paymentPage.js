@@ -7,7 +7,7 @@ export default function PaymentPage() {
     amount: '',
     transactionDate: '',
     name: '',
-    bankReferenceNumber: '',
+    swiftCode: '',
   });
   const [error, setError] = useState(""); 
   const [successMessage, setSuccessMessage] = useState("");
@@ -103,13 +103,13 @@ async function onSubmit(e) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="bankReferenceNumber">Bank Reference Number</label>
+          <label htmlFor="swiftCode">Swift Code</label>
           <input
             type="text"
             className="form-control"
-            id="bankReferenceNumber"
-            value={form.bankReferenceNumber}
-            onChange={(e) => updateForm({ bankReferenceNumber: e.target.value })}
+            id="Swift Code"
+            value={form.swiftCode}
+            onChange={(e) => updateForm({ swiftCode: e.target.value })}
           />
         </div>
 

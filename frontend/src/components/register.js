@@ -75,7 +75,7 @@ export default function Register() {
             if (response.ok) {
                 setForm({ fullName: "", idNumber: "", accountNumber: "", password: "" });
                 alert("Registration successful!");
-                navigate("/registersuccess.js");
+                navigate("/login.js");
             } else {
                 const errorMessage = await response.json();
                 window.alert(errorMessage.message || "Failed to register user.");
